@@ -1,0 +1,45 @@
+<mat-toolbar color="primary" class="app-toolbar">
+  <mat-icon>api</mat-icon>
+  <span class="title">{{ title }}</span>
+  <span class="spacer"></span>
+  
+  <mat-form-field appearance="outline" class="base-url-field">
+    <mat-label>Base URL</mat-label>
+    <input matInput [(ngModel)]="baseUrl" (ngModelChange)="onBaseUrlChange()" placeholder="http://localhost:3000">
+  </mat-form-field>
+  
+  <mat-form-field appearance="outline" class="api-title-field">
+    <mat-label>API Title</mat-label>
+    <input matInput [(ngModel)]="apiTitle" placeholder="My API">
+  </mat-form-field>
+  
+  <button mat-raised-button color="accent" (click)="exportOpenAPI()">
+    <mat-icon>download</mat-icon>
+    Export OpenAPI
+  </button>
+  
+  <button mat-icon-button [matMenuTriggerFor]="menu">
+    <mat-icon>more_vert</mat-icon>
+  </button>
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item (click)="clearAll()">
+      <mat-icon>delete_sweep</mat-icon>
+      <span>Clear All</span>
+    </button>
+  </mat-menu>
+</mat-toolbar>
+
+<div class="app-container">
+  <div class="sidebar">
+    <app-method-toolbar></app-method-toolbar>
+  </div>
+  
+  <div class="main-content">
+    <app-api-canvas></app-api-canvas>
+  </div>
+  
+  <div class="config-sidebar">
+    <app-config-panel></app-config-panel>
+    <app-api-tester></app-api-tester>
+  </div>
+</div>
