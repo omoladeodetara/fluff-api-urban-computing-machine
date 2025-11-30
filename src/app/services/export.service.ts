@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Endpoint, Parameter, ApiResponse } from '../models';
 
+// OpenAPI specification version
+const OPENAPI_VERSION = '3.0.3';
+
 interface OpenAPISpec {
   openapi: string;
   info: {
@@ -77,7 +80,7 @@ export class ExportService {
     }
 
     const spec: OpenAPISpec = {
-      openapi: '3.0.3',
+      openapi: OPENAPI_VERSION,
       info: {
         title,
         version: '1.0.0'

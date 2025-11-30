@@ -28,7 +28,8 @@ export class ApiBuilderService {
       try {
         const endpoints = JSON.parse(saved);
         this.endpointsSubject.next(endpoints);
-      } catch {
+      } catch (error) {
+        console.error('Failed to load endpoints from localStorage:', error);
         this.endpointsSubject.next([]);
       }
     }

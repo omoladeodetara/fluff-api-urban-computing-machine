@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CdkDrag, CdkDragDrop, CdkDragEnd, CdkDropList, DragDropModule } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, CdkDragEnd, DragDropModule } from '@angular/cdk/drag-drop';
 import { MatIconModule } from '@angular/material/icon';
+import { Subscription } from 'rxjs';
 import { ApiBuilderService } from '../../services/api-builder.service';
 import { EndpointBlockComponent } from '../endpoint-block/endpoint-block.component';
 import { Endpoint, HttpMethod } from '../../models';
@@ -94,30 +95,38 @@ import { Endpoint, HttpMethod } from '../../models';
     }
   `]
 })
-export class ApiCanvasComponent implements OnInit {
+export class ApiCanvasComponent implements OnInit, OnDestroy {
   endpoints: Endpoint[] = [];
   selectedEndpoint: Endpoint | null = null;
+  private subscriptions: Subscription[] = [];
 
   constructor(private apiBuilder: ApiBuilderService) {}
 
   ngOnInit(): void {
-    this.apiBuilder.endpoints$.subscribe(endpoints => {
-      this.endpoints = endpoints;
-    });
-    
-    this.apiBuilder.selectedEndpoint$.subscribe(endpoint => {
-      this.selectedEndpoint = endpoint;
-    });
+    this.subscriptions.push(
+      this.apiBuilder.endpoints$.subscribe(endpoints => {
+        this.endpoints = endpoints;
+      }),
+      this.apiBuilder.selectedEndpoint$.subscribe(endpoint => {
+        this.selectedEndpoint = endpoint;
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
   onDrop(event: CdkDragDrop<Endpoint[], HttpMethod[], HttpMethod>): void {
     // If dropping from method toolbar (external) - check by element id
     if (event.previousContainer.id !== event.container.id) {
       const method = event.item.data;
-      const rect = (event.container.element.nativeElement as HTMLElement).getBoundingClientRect();
+      const container = event.container.element.nativeElement as HTMLElement;
+      const rect = container.getBoundingClientRect();
+      // Account for scroll position of the canvas container
       const position = {
-        x: event.dropPoint.x - rect.left,
-        y: event.dropPoint.y - rect.top
+        x: event.dropPoint.x - rect.left + container.scrollLeft,
+        y: event.dropPoint.y - rect.top + container.scrollTop
       };
       const endpoint = this.apiBuilder.createEndpoint(method, position);
       this.apiBuilder.selectEndpoint(endpoint);

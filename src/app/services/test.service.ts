@@ -4,6 +4,9 @@ import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { Endpoint, AuthConfig, Parameter } from '../models';
 
+// Methods that support request body
+const METHODS_WITH_BODY = ['POST', 'PUT', 'PATCH'];
+
 export interface TestResult {
   success: boolean;
   status?: number;
@@ -24,7 +27,7 @@ export class TestService {
   testEndpoint(endpoint: Endpoint, baseUrl: string): Observable<TestResult> {
     const startTime = Date.now();
     const url = this.buildUrl(baseUrl, endpoint.path, endpoint.parameters);
-    const headers = this.buildHeaders(endpoint.auth, endpoint.parameters);
+    const headers = this.buildHeaders(endpoint.auth, endpoint.parameters, endpoint.method);
     const params = this.buildParams(endpoint.parameters);
 
     let request$: Observable<HttpResponse<unknown>>;
@@ -95,19 +98,23 @@ export class TestService {
   private buildUrl(baseUrl: string, path: string, params: Parameter[]): string {
     let fullPath = path;
     
-    // Replace path parameters
+    // Replace path parameters with URL-encoded values
     params
       .filter(p => p.location === 'path')
       .forEach(p => {
-        fullPath = fullPath.replace(`{${p.name}}`, p.example || '');
+        fullPath = fullPath.replace(`{${p.name}}`, encodeURIComponent(p.example || ''));
       });
 
     return `${baseUrl.replace(/\/$/, '')}${fullPath}`;
   }
 
-  private buildHeaders(auth: AuthConfig, params: Parameter[]): HttpHeaders {
+  private buildHeaders(auth: AuthConfig, params: Parameter[], method: string): HttpHeaders {
     let headers = new HttpHeaders();
-    headers = headers.set('Content-Type', 'application/json');
+    
+    // Only set Content-Type for methods that have a request body
+    if (METHODS_WITH_BODY.includes(method)) {
+      headers = headers.set('Content-Type', 'application/json');
+    }
 
     // Add auth headers
     switch (auth.type) {
@@ -118,13 +125,17 @@ export class TestService {
         break;
       case 'basic':
         if (auth.username && auth.password) {
-          const encoded = btoa(`${auth.username}:${auth.password}`);
+          // Use TextEncoder for proper Unicode support in Basic Auth
+          const credentials = `${auth.username}:${auth.password}`;
+          const encoded = btoa(unescape(encodeURIComponent(credentials)));
           headers = headers.set('Authorization', `Basic ${encoded}`);
         }
         break;
       case 'apiKey':
         if (auth.apiKeyLocation === 'header' && auth.apiKeyName && auth.apiKeyValue) {
-          headers = headers.set(auth.apiKeyName, auth.apiKeyValue);
+          // Sanitize the API key value to prevent header injection
+          const sanitizedValue = auth.apiKeyValue.replace(/[\r\n]/g, '');
+          headers = headers.set(auth.apiKeyName, sanitizedValue);
         }
         break;
     }

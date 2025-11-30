@@ -13,7 +13,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { Subscription } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiBuilderService } from '../../services/api-builder.service';
-import { Endpoint, Parameter, ApiResponse, AuthConfig, AuthType, ParameterLocation, ParameterType } from '../../models';
+import { Endpoint, Parameter, ApiResponse, AuthType, ParameterLocation, ParameterType } from '../../models';
 
 @Component({
   selector: 'app-config-panel',

@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -14,6 +14,8 @@ import { HttpMethod } from '../../models';
     <div class="method-toolbar">
       <h3>HTTP Methods</h3>
       <p class="hint">Drag methods to canvas</p>
+      <!-- NOTE: The value 'canvas' in cdkDropListConnectedTo must match the id of the canvas element.
+           If you change the canvas id, update this array as well to avoid breaking drag-drop. -->
       <div class="method-list" cdkDropList [cdkDropListConnectedTo]="['canvas']" 
            [cdkDropListData]="methods" cdkDropListSortingDisabled>
         <div *ngFor="let method of methods" 
