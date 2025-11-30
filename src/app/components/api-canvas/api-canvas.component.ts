@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
+import { CdkDrag, CdkDragDrop, CdkDragEnd, CdkDropList, DragDropModule } from '@angular/cdk/drag-drop';
 import { MatIconModule } from '@angular/material/icon';
 import { ApiBuilderService } from '../../services/api-builder.service';
 import { EndpointBlockComponent } from '../endpoint-block/endpoint-block.component';
@@ -110,11 +110,10 @@ export class ApiCanvasComponent implements OnInit {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onDrop(event: CdkDragDrop<any, any, any>): void {
-    // If dropping from method toolbar (external)
-    if (event.previousContainer !== event.container) {
-      const method = event.item.data as HttpMethod;
+  onDrop(event: CdkDragDrop<Endpoint[], HttpMethod[], HttpMethod>): void {
+    // If dropping from method toolbar (external) - check by element id
+    if (event.previousContainer.id !== event.container.id) {
+      const method = event.item.data;
       const rect = (event.container.element.nativeElement as HTMLElement).getBoundingClientRect();
       const position = {
         x: event.dropPoint.x - rect.left,
@@ -125,9 +124,8 @@ export class ApiCanvasComponent implements OnInit {
     }
   }
 
-  onDragEnded(event: unknown, endpoint: Endpoint): void {
-    const dragEvent = event as { source: { getFreeDragPosition: () => { x: number; y: number } } };
-    const position = dragEvent.source.getFreeDragPosition();
+  onDragEnded(event: CdkDragEnd, endpoint: Endpoint): void {
+    const position = event.source.getFreeDragPosition();
     const updated = {
       ...endpoint,
       position: {
@@ -136,7 +134,8 @@ export class ApiCanvasComponent implements OnInit {
       }
     };
     this.apiBuilder.updateEndpoint(updated);
-    dragEvent.source.getFreeDragPosition = () => ({ x: 0, y: 0 });
+    // Reset the drag position after updating the endpoint's stored position
+    event.source.reset();
   }
 
   selectEndpoint(endpoint: Endpoint): void {

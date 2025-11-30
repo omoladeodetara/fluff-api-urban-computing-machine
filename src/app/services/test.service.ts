@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams, HttpResponse, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { Endpoint, AuthConfig, Parameter } from '../models';
@@ -27,7 +27,7 @@ export class TestService {
     const headers = this.buildHeaders(endpoint.auth, endpoint.parameters);
     const params = this.buildParams(endpoint.parameters);
 
-    let request$: Observable<unknown>;
+    let request$: Observable<HttpResponse<unknown>>;
 
     const options = {
       headers,
@@ -38,19 +38,19 @@ export class TestService {
 
     switch (endpoint.method) {
       case 'GET':
-        request$ = this.http.get(url, options);
+        request$ = this.http.get<unknown>(url, options);
         break;
       case 'POST':
-        request$ = this.http.post(url, this.parseBody(endpoint.requestBody), options);
+        request$ = this.http.post<unknown>(url, this.parseBody(endpoint.requestBody), options);
         break;
       case 'PUT':
-        request$ = this.http.put(url, this.parseBody(endpoint.requestBody), options);
+        request$ = this.http.put<unknown>(url, this.parseBody(endpoint.requestBody), options);
         break;
       case 'DELETE':
-        request$ = this.http.delete(url, options);
+        request$ = this.http.delete<unknown>(url, options);
         break;
       case 'PATCH':
-        request$ = this.http.patch(url, this.parseBody(endpoint.requestBody), options);
+        request$ = this.http.patch<unknown>(url, this.parseBody(endpoint.requestBody), options);
         break;
       default:
         return of({
@@ -61,8 +61,7 @@ export class TestService {
     }
 
     return request$.pipe(
-      map((response: unknown) => {
-        const httpResponse = response as { status: number; statusText: string; body: unknown; headers: { keys: () => string[]; get: (key: string) => string | null } };
+      map((httpResponse: HttpResponse<unknown>) => {
         const responseHeaders: Record<string, string> = {};
         httpResponse.headers.keys().forEach((key: string) => {
           const value = httpResponse.headers.get(key);
@@ -80,7 +79,7 @@ export class TestService {
           duration: Date.now() - startTime
         };
       }),
-      catchError((error: { status?: number; statusText?: string; error?: unknown; message?: string }) => {
+      catchError((error: HttpErrorResponse) => {
         return of({
           success: false,
           status: error.status,

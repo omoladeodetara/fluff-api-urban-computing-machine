@@ -8,7 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatDialogModule } from '@angular/material/dialog';
 import { MethodToolbarComponent } from './components/method-toolbar/method-toolbar.component';
 import { ApiCanvasComponent } from './components/api-canvas/api-canvas.component';
 import { ConfigPanelComponent } from './components/config-panel/config-panel.component';
